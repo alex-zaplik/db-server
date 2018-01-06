@@ -1,22 +1,23 @@
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import database.DatabaseManager;
+import net.Server;
+
+import java.io.IOException;
+import java.sql.*;
 
 public class Main {
 
     public static void main(String[] args) {
-        Connection conn = null;
-
         try {
-            conn = DriverManager.getConnection("jdbc:mysql://192.168.56.1/test?" +
-                            "user=server&password=server");
+            DatabaseManager.getInstance().init("localhost", "uni_results", "server", "server");
+            new Server(4444);
 
         } catch (SQLException ex) {
-            // handle any errors
-            System.out.println("SQLException: " + ex.getMessage());
-            System.out.println("SQLState: " + ex.getSQLState());
-            System.out.println("VendorError: " + ex.getErrorCode());
+            System.err.println("SQLException: " + ex.getMessage());
+            System.err.println("SQLState: " + ex.getSQLState());
+            System.err.println("VendorError: " + ex.getErrorCode());
+        } catch (IOException e) {
+            System.err.println("Server error");
         }
     }
 }
