@@ -8,6 +8,8 @@ import java.util.ArrayList;
 
 public class DatabaseManager {
 
+	// TODO: What about backups and selects with text fields?
+
 	private static DatabaseManager instance;
 
 	private Connection connection;
