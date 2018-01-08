@@ -1,5 +1,14 @@
 package net;
 
+import com.google.common.hash.Hashing;
+import database.DatabaseManager;
+import exceptions.AccessDeniedException;
+import message.builder.IMessageBuilder;
+import message.builder.JSONMessageBuilder;
+import message.parser.IMessageParser;
+import message.parser.JSONMessageParser;
+import structures.Password;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -7,8 +16,10 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class Server {
 
@@ -16,6 +27,9 @@ public class Server {
 	private volatile boolean running;
 
 	private List<User> users;
+
+	private IMessageParser parser = new JSONMessageParser();
+	private IMessageBuilder builder = new JSONMessageBuilder();
 
 	private Runnable emptySocket = new Runnable() {
 		@Override
@@ -56,12 +70,39 @@ public class Server {
 	}
 
 	private void initConnection(BufferedReader in, PrintWriter out) {
-		String login = null;
-		UserType type = null;
+		try {
+			String input = in.readLine();
 
-		// TODO: Logging in
+			if (input != null) {
+				Map<String, Object> response = parser.parse(input);
 
-		users.add(new User(login, type, in, out));
+				String login = (String) response.get("login");
+				String pass = (String) response.get("pass");
+				String typeStr = (String) response.get("type");
+				UserType type;
+
+				if (typeStr.equals("admin"))
+					type = UserType.ADMIN;
+				else if (typeStr.equals("lecturer"))
+					type = UserType.LECTURER;
+				else
+					type = UserType.STUDENT;
+
+				Password password = DatabaseManager.getInstance().getPassword(login, type);
+
+				if (!password.getPass().equals(hashPass(pass, password.getSalt())))
+					throw new AccessDeniedException("Access denied");
+
+				User u = new User(login, type, in, out);
+				users.add(u);
+				u.start();
+			}
+		} catch (AccessDeniedException e) {
+			out.println(builder.put("error", "Invalid password or login").get());
+		} catch (IOException e) {
+			out.println(builder.put("error", "Server exception"));
+			System.err.println("Unable to connect user...");
+		}
 	}
 
 	public void stopServer() throws IOException {
@@ -75,5 +116,9 @@ public class Server {
 
 	private boolean waitForUsers() {
 		return running;
+	}
+
+	private String hashPass(String pass, String salt) {
+		return Hashing.sha256().hashString(pass + salt, StandardCharsets.UTF_8).toString();
 	}
 }

@@ -3,7 +3,7 @@ import database.DatabaseManager;
 import net.Server;
 
 import java.io.IOException;
-import java.sql.*;
+import java.sql.SQLException;
 
 public class Main {
 
@@ -17,7 +17,7 @@ public class Main {
             System.err.println("SQLState: " + ex.getSQLState());
             System.err.println("VendorError: " + ex.getErrorCode());
         } catch (IOException e) {
-            System.err.println("Server error");
+            System.err.println("Unable to start the server");
         }
     }
 }

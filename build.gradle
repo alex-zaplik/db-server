@@ -14,4 +14,5 @@ dependencies {
 
     compile group: 'mysql', name: 'mysql-connector-java', version: '5.1.6'
     compile group: 'org.json', name: 'json', version: '20171018'
+    compile group: 'com.google.guava', name: 'guava', version: '23.6-jre'
 }
