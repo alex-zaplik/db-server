@@ -543,8 +543,6 @@ public class DatabaseManager {
 			while ( (line = br.readLine()) != null)
 				System.err.println(line);
 
-			// TODO: System nie mo�e odnale�� okre�lonej �cie�ki.
-
 		} catch (IOException e) {
 			throw new WrongFileException();
 		}
