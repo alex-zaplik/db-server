@@ -1,6 +1,10 @@
+insert into Users values("admin", "admin", "admin", null, "admin", null);
+
 insert into Users values("ala.ala", "Ala", "Kowalska", null, "123", null);
 insert into Users values("bob.bob", "Bob", "Kowalski", null, "abc", null);
 insert into Users values("mat.mat", "Mat", "Nowak", null, "aaa", null);
+
+update Users set pass = 'bbb' where login = 'bob.bob';
 
 insert into Lecturers values("ala.ala", "mgr.");
 insert into Lecturers values("bob.bob", "dr");
@@ -15,6 +19,8 @@ insert into Users values("100005", "105", "205", null, "666", null);
 insert into Users values("100006", "106", "206", null, "777", null);
 insert into Users values("100007", "107", "207", null, "888", null);
 insert into Users values("100008", "108", "208", null, "999", null);
+insert into Users values("100010", "222", "333", null, "aaa", null);
+insert into Users values("100011", "222", "333", null, "aaa", null);
 
 insert into Students values("100000", "2016-10-01", 2);
 insert into Students values("100001", "2015-10-01", 3);

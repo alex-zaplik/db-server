@@ -2,6 +2,7 @@ package net;
 
 import database.DatabaseManager;
 import exceptions.AccessDeniedException;
+import exceptions.WrongFileException;
 import message.builder.IMessageBuilder;
 import message.builder.JSONMessageBuilder;
 import message.parser.IMessageParser;
@@ -14,8 +15,6 @@ import java.io.PrintWriter;
 import java.util.Map;
 
 public class User extends Thread {
-
-	// TODO: Protocol for backup/restore
 
 	private String login;
 	private UserType type;
@@ -155,6 +154,22 @@ public class User extends Thread {
 		}
 	}
 
+	private void backupRestore(Map<String, Object> response) {
+		String dir = "C:\\uni-results\\" + response.get("file");
+		boolean isBackup = (boolean) response.get("backup");
+
+		try {
+			if (isBackup)
+				DatabaseManager.getInstance().doBackup(dir);
+			else
+				DatabaseManager.getInstance().doRestore(dir);
+
+			out.println(builder.put("msg", ((isBackup) ? "Backup" : "Restore") + " done successfully").get());
+		} catch (AccessDeniedException | WrongFileException e) {
+			out.println(builder.put("error", e.getMessage()).get());
+		}
+	}
+
 	private void closeOut() {
 		out.close();
 	}
@@ -193,6 +208,9 @@ public class User extends Thread {
 							break;
 						case 6:
 							deleteResults(response);
+							break;
+						case 7:
+							backupRestore(response);
 							break;
 					}
 				}

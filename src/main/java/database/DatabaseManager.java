@@ -8,6 +8,7 @@ import net.UserType;
 import structures.Password;
 import structures.ResultInfo;
 
+import java.io.*;
 import java.sql.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -32,6 +33,9 @@ public class DatabaseManager {
 	private Pattern loginPattern = Pattern.compile("[a-zA-Z0-9.]{1,20}");
 	private Pattern typePattern = Pattern.compile("[a-zA-Z_]+");
 	private Pattern datePattern = Pattern.compile("[0-9]{4}-[0-9]{2}-[0-9]{2}");
+	private Pattern filePattern = Pattern.compile("C:\\\\uni-results\\\\[a-zA-Z0-9]+.sql");
+
+	private String user = "backup_user", password = "backup_user";
 
 	private IMessageBuilder builder = new JSONMessageBuilder();
 
@@ -483,15 +487,66 @@ public class DatabaseManager {
 
 	public void doBackup(String file) throws AccessDeniedException, WrongFileException {
 		synchronized (this) {
-			// TODO: Make a backup
 			System.out.println("Performing a backup to " + file);
+
+			if (!filePattern.matcher(file).matches())
+				throw new WrongFileException("File name has to be of this format: [a-zA-Z0-9]+.sql");
+
+			File workDir = new File("C:\\Program Files\\MySQL\\MySQL Server 5.7\\bin");
+			String[] command = {
+					"cmd.exe",
+					"/c",
+					"mysqldump.exe " +
+							"--opt --quote-names --routines --triggers --user=" + user + " --password=" + password + " " +
+							"uni_results > \"" + file + "\""
+			};
+
+			performDump(workDir, command);
 		}
 	}
 
 	public void doRestore(String file) throws AccessDeniedException, WrongFileException {
 		synchronized (this) {
-			// TODO: Restore from backup
-			System.out.println("Performing a backup to " + file);
+			System.out.println("Performing a restore from " + file);
+
+			if (!filePattern.matcher(file).matches())
+				throw new WrongFileException("File name has to be of this format: [a-zA-Z0-9]+.sql");
+
+			File workDir = new File("C:\\Program Files\\MySQL\\MySQL Server 5.7\\bin");
+			String[] command = {
+					"cmd.exe",
+					"/c",
+					"mysql.exe " +
+							"--user=" + user + " --password=" + password + " --default-character-set=utf8 " +
+							"--database=uni_results  < \"" + file + "\""
+			};
+
+			performDump(workDir, command);
+		}
+	}
+
+	private void performDump(File workDir, String[] command) throws WrongFileException {
+		try {
+			Process dump = Runtime.getRuntime().exec(command, null, workDir);
+
+			String line;
+
+			InputStream is = dump.getInputStream();
+			InputStreamReader isr = new InputStreamReader(is);
+			BufferedReader br = new BufferedReader(isr);
+			while ( (line = br.readLine()) != null)
+				System.out.println(line);
+
+			is = dump.getErrorStream();
+			isr = new InputStreamReader(is);
+			br = new BufferedReader(isr);
+			while ( (line = br.readLine()) != null)
+				System.err.println(line);
+
+			// TODO: System nie mo�e odnale�� okre�lonej �cie�ki.
+
+		} catch (IOException e) {
+			throw new WrongFileException();
 		}
 	}
 
@@ -506,7 +561,7 @@ public class DatabaseManager {
 		return false;
 	}
 
-	public boolean checkDateFormat(String date) {
+	private boolean checkDateFormat(String date) {
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 		sdf.setLenient(false);
 

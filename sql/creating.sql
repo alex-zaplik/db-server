@@ -43,6 +43,39 @@ for each row begin
     end; $$
 delimiter ;
 
+drop trigger if exists user_password_up;
+
+delimiter $$
+create trigger user_password_up before update on Users
+for each row begin
+	declare _salt char(64);
+	declare rand_char char(1);
+	declare rand_count int;
+	declare rand_upper int;
+        
+	if (new.pass <> old.pass) then		
+		set _salt = '';
+
+		set rand_count = 0;
+		while rand_count < 64 do
+			set rand_upper = floor(rand() * 100);
+			
+			if rand_upper > 50 then
+				set rand_char = (select lower(conv(floor(rand() * 36), 10, 36)));
+			else
+				set rand_char = (select upper(conv(floor(rand() * 36), 10, 36)));
+			end if;
+			
+			set _salt = concat(_salt, rand_char);
+			set rand_count = rand_count + 1;
+		end while;
+		
+		call hash_pass(new.pass, _salt);
+		set new.salt = _salt;
+	end if;
+    end; $$
+DELIMITER ;
+
 drop trigger if exists groups_in_check;
 
 delimiter $$
