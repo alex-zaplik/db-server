@@ -35,7 +35,7 @@ public class DatabaseManager {
 	private Pattern datePattern = Pattern.compile("[0-9]{4}-[0-9]{2}-[0-9]{2}");
 	private Pattern filePattern = Pattern.compile("C:\\\\uni-results\\\\[a-zA-Z0-9]+.sql");
 
-	private String user = "backup_user", password = "backup_user";
+	private String user, password;
 
 	private IMessageBuilder builder = new JSONMessageBuilder();
 
@@ -53,7 +53,10 @@ public class DatabaseManager {
 		return instance;
 	}
 
-	public void init(String address, String dbName, String user, String password) throws SQLException {
+	public void init(String address, String dbName, String user, String password, String backupUser, String backupPassword) throws SQLException {
+		this.user = backupUser;
+		this.password = backupPassword;
+
 		connection = DriverManager.getConnection("jdbc:mysql://" + address + "/" + dbName + "?" +
 				"user=" + user + "&password=" + password + "&noAccessToProcedureBodies=true");
 

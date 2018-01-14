@@ -8,8 +8,12 @@ import java.sql.SQLException;
 public class Main {
 
     public static void main(String[] args) {
+
+        if (args.length != 4)
+            System.err.println("Usage: server_username server_password backup_username backup_password");
+
         try {
-            DatabaseManager.getInstance().init("localhost", "uni_results", "server", "server");
+            DatabaseManager.getInstance().init("localhost", "uni_results", args[0], args[1], args[2], args[3]);
             new Server(4444);
 
         } catch (SQLException ex) {
